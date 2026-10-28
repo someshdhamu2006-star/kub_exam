@@ -1,0 +1,25 @@
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Deploy ConfigMap Application') {
+            steps {
+                bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" apply -f set8-configmap.yaml'
+            }
+        }
+
+        stage('Verify ConfigMap') {
+            steps {
+                bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" get configmap set8-app-config'
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" rollout status deployment/set8-web'
+                bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" get deployment set8-web'
+            }
+        }
+    }
+}
