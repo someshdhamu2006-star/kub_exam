@@ -1,0 +1,25 @@
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Deploy Readiness Probe') {
+            steps {
+                bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" apply -f set10-readiness.yaml'
+            }
+        }
+
+        stage('Wait for Deployment') {
+            steps {
+                bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" rollout status deployment/set10-web'
+            }
+        }
+
+        stage('Verify Readiness Probe') {
+            steps {
+                bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" describe deployment set10-web'
+                bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" get pods -l app=set10-web'
+            }
+        }
+    }
+}
