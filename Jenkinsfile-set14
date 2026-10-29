@@ -1,0 +1,44 @@
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Deploy Application') {
+            steps {
+                bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" apply -f set14-deployment.yaml'
+            }
+        }
+
+        stage('Check Deployment Rollout') {
+            steps {
+                script {
+                    def result = bat(
+                        returnStatus: true,
+                        script: 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" rollout status deployment/set14-web --timeout=120s'
+                    )
+
+                    if (result != 0) {
+                        echo 'Deployment rollout failed. Collecting diagnostics.'
+
+                        bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" describe deployment set14-web'
+                        bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" get pods -l app=set14-web -o wide'
+                        bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" get events --sort-by=.metadata.creationTimestamp'
+
+                        bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" logs deployment/set14-web --all-pods=true --all-containers=true'
+
+                        error('Deployment rollout failed. Review the diagnostics above.')
+                    }
+
+                    echo 'Deployment rollout succeeded.'
+                }
+            }
+        }
+
+        stage('Final Status') {
+            steps {
+                bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" get deployment set14-web'
+                bat 'kubectl --kubeconfig="C:\\Users\\LENOVO\\.kube\\config" get pods -l app=set14-web'
+            }
+        }
+    }
+}
